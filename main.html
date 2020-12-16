@@ -1,0 +1,501 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=”UTF-8" />
+<title>sample1</title>
+	<!--<script src="./jquery-3.4.1.min.js"></script>-->
+
+	<script type="text/javascript">
+//★使用する変数一覧
+enho = ""; //入力された演算方法
+menh = ""; //記憶された演算方法
+mn1 = ""; //記憶された数値1(演算フラグ用)
+mn2 = ""; //記憶された数値2(実際に演算に使用)
+exn = ""; //表示されている数値代入用
+nen = 0; //新たに表示する数値代入用
+memo = 0; //メモリー
+
+//★クリアボタンの処理
+function clearen(cn){
+
+	//"C"が押された場合
+	if (cn == "clear") {
+		enho = ""; //入力された演算方法
+		menh = ""; //記憶された演算方法
+		mn1 = ""; //記憶された数値1(演算フラグ用)
+		mn2 = ""; //記憶された数値2(実際に演算に使用)
+		exn = ""; //表示されている数値代入用
+		nen = 0; //新たに表示する数値代入用
+		document.forms.CALC_FORM.SEG.value = 0;
+	}
+
+	//"CE"が押された場合
+	if (cn == "sclear") {
+		document.forms.CALC_FORM.SEG.value = 0;
+	}
+	
+	//サブ表示欄に数値コピー
+	sub_seg_copy();
+
+}
+
+//★数字や小数点が入力された場合の処理
+function suji(numb){
+
+	//演算があった直後の場合の処理
+	if (mn1 != "") {
+		//記憶されている変数を移して、同じ処理が繰り返されないようにする。
+		mn2 = mn1;
+		mn1 = "";
+		document.forms.CALC_FORM.SEG.value = 0;
+	}
+
+	exn = '' + document.forms.CALC_FORM.SEG.value;
+	numb = '' + numb;
+
+	//表示されている数字がゼロで'.'以外が入力された場合には、nullに変換の上に処理
+	if ((exn == "0") && (numb != '.')){
+		exn = "";
+	}
+
+	//表示されている数字に小数点があり、さらに小数点が入力された場合には、numbをクリアにして、小数点を2つ以上にしない。
+	if ((Math.floor(exn) != exn) && (numb == '.')){
+		numb = "";
+	}
+
+	//新たに表示される数字は、もともと表示されていた数字＋入力された数字
+	nen = "" + exn + numb;
+	document.forms.CALC_FORM.SEG.value = nen;
+	
+	//サブ表示欄に数値コピー
+	sub_seg_copy();
+}
+
+//★演算の場合の処理
+function enzan(enho){
+
+	//計算に必要な数値を変数に代入
+	exn = document.forms.CALC_FORM.SEG.value;
+	
+	//演算があった直後の場合の処理
+	if (mn1 != "") {
+		//記憶されている変数を移して、同じ処理が繰り返されないようにする。
+		mn2 = mn1;
+		mn1 = "";
+		//document.forms.CALC_FORM.SEG.value = 0;
+	}
+
+	//演算処理(四則演算とべき乗)
+	if (menh == "tasu") {
+		nen = Math.floor((parseFloat(mn2) + parseFloat(exn)) *1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	if (menh == "hiku") {
+		nen = Math.floor((mn2 - exn) *1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	if (menh == "kakeru") {
+		nen = Math.floor(mn2 * exn *1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	if (menh == "waru") {
+		nen = Math.floor((mn2 / exn) *1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	if (menh == "bekijou") {
+		nen = Math.floor(Math.pow(mn2,exn) *1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+
+	//演算方法を変数に代入して記憶させる
+	menh = enho;
+
+	//現時点で表示されている数字を変数に格納する
+	mn1 = document.forms.CALC_FORM.SEG.value;
+
+	//サブ表示欄に数値コピー
+	sub_seg_copy();
+
+}
+
+
+//★メモリー演算の処理
+function memoen(mnb){
+
+	//演算があった直後の場合の処理
+	if (mn1 != "") {
+		//記憶されている変数を移して、同じ処理が繰り返されないようにする。
+		mn2 = mn1;
+		mn1 = "";
+		//document.forms.CALC_FORM.SEG.value = 0;
+	}
+
+	//"MC"が押された場合
+	if (mnb == "mc") {
+		memo = 0;
+		document.forms.CALC_FORM.MEMORY.value = "";
+	}
+
+	//"MR"が押された場合
+	if (mnb == "mr") {
+		document.forms.CALC_FORM.SEG.value = document.forms.CALC_FORM.MEMORY.value;
+	}
+
+	//"MS"が押された場合
+	if (mnb == "ms") {
+		memo = parseFloat(document.forms.CALC_FORM.SEG.value);
+		document.forms.CALC_FORM.MEMORY.value = memo;
+	}
+
+	//"M+"が押された場合
+	if (mnb == "mp") {
+		memo = parseFloat(document.forms.CALC_FORM.MEMORY.value) + parseFloat(document.forms.CALC_FORM.SEG.value);
+		document.forms.CALC_FORM.MEMORY.value = memo;		
+	}
+	
+	//サブ表示欄に数値コピー
+	sub_seg_copy();
+	
+}
+
+//★その他の機能の処理
+function kinou(knb){
+
+	//"+/-"が押された場合(正負変換)
+	if (knb == "puramai") {
+		document.forms.CALC_FORM.SEG.value = -document.forms.CALC_FORM.SEG.value;
+	}
+
+	//"√"が押された場合(平方根)
+	if (knb == "heihoukon") {
+		document.forms.CALC_FORM.SEG.value = Math.sqrt(document.forms.CALC_FORM.SEG.value);
+	}
+
+	//"%"が押された場合(パーセント)
+	if (knb == "percent") {
+		document.forms.CALC_FORM.SEG.value = mn2 * document.forms.CALC_FORM.SEG.value / 100;
+	}
+
+	//"1/x"が押された場合(逆数)
+	if (knb == "gyakusu") {
+		document.forms.CALC_FORM.SEG.value = (1/document.forms.CALC_FORM.SEG.value);
+	}
+	
+	//"x^2"が押された場合(2乗)
+	if (knb == "nijou") {
+		document.forms.CALC_FORM.SEG.value = Math.floor(Math.pow(document.forms.CALC_FORM.SEG.value,2)*1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+	}
+
+	//"x^3"が押された場合(3乗)
+	if (knb == "sanjou") {
+		document.forms.CALC_FORM.SEG.value = Math.floor(Math.pow(document.forms.CALC_FORM.SEG.value,3)*1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+	}
+
+	//"Exp"が押された場合(指数関数)
+	if (knb == "shisukansu") {
+		document.forms.CALC_FORM.SEG.value = Math.exp(document.forms.CALC_FORM.SEG.value);
+	}
+	
+	//"ln"が押された場合(自然対数)
+	if (knb == "shizentaisu") {
+		document.forms.CALC_FORM.SEG.value = Math.log(document.forms.CALC_FORM.SEG.value);
+	}
+
+	//"log"が押された場合(常用対数)
+	if (knb == "jouyoutaisu") {
+		document.forms.CALC_FORM.SEG.value = Math.log(document.forms.CALC_FORM.SEG.value) * Math.LOG10E;
+	}
+
+	//"sin"が押された場合(サイン)
+	if (knb == "sin") {
+		if (document.forms.CALC_FORM.KAKUDO[0].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value / 180 * Math.PI;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[1].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[2].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value / 200 * Math.PI;
+		}
+		document.forms.CALC_FORM.SEG.value = Math.floor(Math.sin(kaku)*1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+	}
+	
+	//"cos"が押された場合(コサイン)
+	if (knb == "cos") {
+		if (document.forms.CALC_FORM.KAKUDO[0].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value / 180 * Math.PI;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[1].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[2].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value / 200 * Math.PI;
+		}
+		document.forms.CALC_FORM.SEG.value = Math.floor(Math.cos(kaku)*1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+	}
+
+	//"tan"が押された場合(タンジェント)
+	if (knb == "tan") {
+		if (document.forms.CALC_FORM.KAKUDO[0].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value / 180 * Math.PI;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[1].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[2].checked) {
+			kaku = document.forms.CALC_FORM.SEG.value / 200 * Math.PI;
+		}
+		document.forms.CALC_FORM.SEG.value = Math.floor(Math.tan(kaku)*1000000000000 + 0.5)/1000000000000; //1e-12未満の位を四捨五入
+	}
+	
+	//"asin"が押された場合(アークサイン)
+	if (knb == "asin") {
+		kaku = Math.asin(document.forms.CALC_FORM.SEG.value)
+		if (document.forms.CALC_FORM.KAKUDO[0].checked) {
+			kaku = kaku / Math.PI * 180;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[1].checked) {
+		}
+		if (document.forms.CALC_FORM.KAKUDO[2].checked) {
+			kaku = kaku / Math.PI * 200;
+		}
+		document.forms.CALC_FORM.SEG.value = kaku;
+	}
+
+	//"acos"が押された場合(アークコサイン)
+	if (knb == "acos") {
+		kaku = Math.acos(document.forms.CALC_FORM.SEG.value)
+		if (document.forms.CALC_FORM.KAKUDO[0].checked) {
+			kaku = kaku / Math.PI * 180;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[1].checked) {
+		}
+		if (document.forms.CALC_FORM.KAKUDO[2].checked) {
+			kaku = kaku / Math.PI * 200;
+		}
+		document.forms.CALC_FORM.SEG.value = kaku;
+	}
+
+	//"atan"が押された場合(アークタンジェント)
+	if (knb == "atan") {
+		kaku = Math.atan(document.forms.CALC_FORM.SEG.value)
+		if (document.forms.CALC_FORM.KAKUDO[0].checked) {
+			kaku = kaku / Math.PI * 180;
+		}
+		if (document.forms.CALC_FORM.KAKUDO[1].checked) {
+		}
+		if (document.forms.CALC_FORM.KAKUDO[2].checked) {
+			kaku = kaku / Math.PI * 200;
+		}
+		document.forms.CALC_FORM.SEG.value = kaku;
+	}
+
+	//"PI"が押された場合(円周率)
+	if (knb == "pai") {
+		document.forms.CALC_FORM.SEG.value = Math.PI;
+	}
+
+	//"10to2"が押された場合(10進数→2進数変換)
+	if (knb == "10to2") {
+		str = eval(document.forms.CALC_FORM.SEG.value);
+		document.forms.CALC_FORM.HENKAN.value = str.toString(2);
+	}
+
+	//"10to8"が押された場合(10進数→8進数変換)
+	if (knb == "10to8") {
+		str = eval(document.forms.CALC_FORM.SEG.value);
+		document.forms.CALC_FORM.HENKAN.value = str.toString(8);
+	}
+
+	//"10to16"が押された場合(10進数→16進数変換)
+	if (knb == "10to16") {
+		str = eval(document.forms.CALC_FORM.SEG.value);
+		document.forms.CALC_FORM.HENKAN.value = str.toString(16);
+	}
+
+	//"2to10"が押された場合(2進数→10進数変換)
+	if (knb == "2to10") {
+		str = document.forms.CALC_FORM.HENKAN.value;
+		nen = parseInt(str,2);
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	
+	//"8to10"が押された場合(8進数→10進数変換)
+	if (knb == "8to10") {
+		str = document.forms.CALC_FORM.HENKAN.value;
+		nen = parseInt(str,8);
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	
+	//"16to10"が押された場合(16進数→10進数変換)
+	if (knb == "16to10") {
+		str = document.forms.CALC_FORM.HENKAN.value;
+		nen = parseInt(str,16);
+		document.forms.CALC_FORM.SEG.value = nen;
+	}
+	
+	//サブ表示欄に数値コピー
+	sub_seg_copy();
+
+}
+
+//★統計計算の処理
+function toukei(tnb){
+
+	data_all = document.forms.CALC_FORM.TDATA.value;
+	data_all = data_all.replace(/ /g,','); //空白をカンマに置換
+	data_all = data_all.replace(/\n/g,','); //改行をカンマに置換
+	data_all = data_all.replace(/\t/g,','); //タブをカンマに置換
+	data_all = data_all.replace(/,,,/g,','); //複数カンマをカンマ一つに置換(1)
+	data_all = data_all.replace(/,,/g,','); //複数カンマをカンマ一つに置換(2)
+	myArray = new Array(); //配列オブジェクトの作成(生データ用)
+	myArray = data_all.split(','); //データをカンマで分割して、配列に代入
+	leng1 = myArray.length; //データの要素数(空データも要素に含む)
+	myArray2 = new Array(); //配列オブジェクトの作成(加工データ用)
+	counter = 0; //標本数カウンタ
+	sumup = 0; //合計値
+	minvl = ""; //最小値
+	maxvl = ""; //最大値
+	for(i=0; i<leng1; i++){
+		if (myArray[i] != "") { //生データが空欄でない場合
+			myArray2[counter] = parseFloat(myArray[i]); //加工データ用の配列に代入
+			if ((minvl=="")||(parseFloat(myArray[i]) < minvl)) { 
+				minvl = parseFloat(myArray[i]); //最小値として代入
+			}
+			if ((maxvl=="")||(parseFloat(myArray[i]) > maxvl)) { 
+				maxvl = parseFloat(myArray[i]); //最大値として代入
+			}
+			sumup = sumup + parseFloat(myArray[i]); //合計値加算
+			counter = counter + 1; //標本数カウンタ追加
+		}
+	}
+	
+	document.forms.CALC_FORM.TDATA.value = myArray2; //データの再表示(スペース、改行や空白データ修正済み)
+	
+	//標本数が押された場合
+	if (tnb == "hyouhonsu") {
+		document.forms.CALC_FORM.SEG.value = counter;
+	}
+
+	//合計値が押された場合
+	if (tnb == "goukei") {
+		document.forms.CALC_FORM.SEG.value = sumup;
+	}
+	
+	//平均値が押された場合
+	if (tnb == "heikin") {
+		document.forms.CALC_FORM.SEG.value = sumup / counter;
+	}
+	
+	//分散が押された場合
+	if (tnb == "bunsan") {
+		bunsancounter = 0;
+		bunsanchi = 0;
+		for(i=0; i<counter; i++){
+			bunsancounter = bunsancounter + Math.pow((myArray2[i] - sumup / counter),2);
+		}
+		bunsanchi = bunsancounter / counter;
+		document.forms.CALC_FORM.SEG.value = bunsanchi;
+	}
+	
+	//標準偏差が押された場合
+	if (tnb == "hyouzyunhensa") {
+		bunsancounter = 0;
+		bunsanchi = 0;
+		hyouzyunhensachi = 0;
+		for(i=0; i<counter; i++){
+			bunsancounter = bunsancounter + Math.pow((myArray2[i] - sumup / counter),2);
+		}
+		bunsanchi = bunsancounter / counter;
+		hyouzyunhensachi = Math.sqrt(bunsanchi);
+		document.forms.CALC_FORM.SEG.value = hyouzyunhensachi;
+	}	
+	
+	//最小値が押された場合
+	if (tnb == "saishou") {
+		document.forms.CALC_FORM.SEG.value = minvl;
+	}
+	
+	//最大値が押された場合
+	if (tnb == "saidai") {
+		document.forms.CALC_FORM.SEG.value = maxvl;
+	}
+	
+	//サブ表示欄に数値コピー
+	sub_seg_copy();
+	
+}
+
+//★計算欄→サブ表示コピー
+function sub_seg_copy() {
+	document.forms.CALC_FORM.SUB_SEG.value = document.forms.CALC_FORM.SEG.value;
+}
+//-->
+</script>
+
+<!---->
+
+<!-- ★HTML -->
+<!-- ★下記の各項目を切り取り＆貼り付けして順番を変えることで、レイアウトの変更ができます。 -->
+
+<form action="" id="CALC_FORM" method="get">
+
+<!-- ★計算欄 -->
+<input type="text" id="SEG" value="0" size="32" onChange="sub_seg_copy()"> 計算欄<br>
+
+<!-- ★角度の形式指定 -->
+<input type="radio" name="KAKUDO" value="DEG" checked>Deg <input type="radio" name="KAKUDO" value="RAD">Rad <input type="radio" name="KAKUDO" value="GRAD">Grad<br>
+
+<br>
+
+<!-- ★クリア、数字、四則演算 -->
+<a href="javascript:clearen('clear')">C</a> <a href="javascript:clearen('sclear')">CE</a> <br>
+<a href="javascript:suji('1')">1</a> <a href="javascript:suji('2')">2</a> <a href="javascript:suji('3')">3</a> <a href="javascript:suji('4')">4</a> <a href="javascript:suji('5')">5</a> <a href="javascript:suji('6')">6</a> <a href="javascript:suji('7')">7</a> <a href="javascript:suji('8')">8</a> <a href="javascript:suji('9')">9</a> <a href="javascript:suji('0')">0</a> <a href="javascript:suji('.')">.</a> <br>
+
+<a href="javascript:enzan('tasu')">＋</a> <a href="javascript:enzan('hiku')">－</a> <a href="javascript:enzan('kakeru')">×</a> <a href="javascript:enzan('waru')">÷</a> <a href="javascript:enzan('equal')">＝</a> <br>
+
+<br>
+
+<!-- ★関数 -->
+<a href="javascript:kinou('puramai')">+/-</a> <a href="javascript:kinou('heihoukon')">√</a> <a href="javascript:kinou('percent')">％</a> <a href="javascript:kinou('gyakusu')">1/x</a> <a href="javascript:kinou('nijou')">x^2</a> <a href="javascript:kinou('sanjou')">x^3</a> <a href="javascript:enzan('bekijou')">x^y</a> <a href="javascript:kinou('shisukansu')">Exp</a> <a href="javascript:kinou('shizentaisu')">ln</a> <a href="javascript:kinou('jouyoutaisu')">log</a> <a href="javascript:kinou('sin')">sin</a> <a href="javascript:kinou('cos')">cos</a> <a href="javascript:kinou('tan')">tan</a> <a href="javascript:kinou('asin')">asin</a> <a href="javascript:kinou('acos')">acos</a> <a href="javascript:kinou('atan')">atan</a> <a href="javascript:kinou('pai')">PI</a> <br>
+
+<br>
+
+<!-- ★メモリー -->
+<input type="text" id="MEMORY" value=""> メモリー<br>
+<a href="javascript:memoen('mc')">MC</a> <a href="javascript:memoen('mr')">MR</a> <a href="javascript:memoen('ms')">MS</a> <a href="javascript:memoen('mp')">M+</a> <br>
+
+<br>
+
+<!-- ★進数変換 -->
+<input type="text" id="HENKAN" value=""> 進数変換<br>
+<a href="javascript:kinou('10to2')">10to2</a> <a href="javascript:kinou('10to8')">10to8</a> <a href="javascript:kinou('10to16')">10to16</a>  計算欄->進数変換<br>
+<a href="javascript:kinou('2to10')">2to10</a> <a href="javascript:kinou('8to10')">8to10</a> <a href="javascript:kinou('16to10')">16to10</a>  進数変換->計算欄<br>
+
+<br>
+
+<!-- ★統計値演算 -->
+データ入力欄(カンマ区切り例: 123,1,-45,3.442…)<br>
+<textarea cols="32" rows="2" id="TDATA"></textarea><br>
+<a href="javascript:toukei('hyouhonsu')">標本数</a> <a href="javascript:toukei('goukei')">合計値</a> <a href="javascript:toukei('heikin')">平均値</a> <a href="javascript:toukei('bunsan')">分散</a> <a href="javascript:toukei('hyouzyunhensa')">標準偏差</a> <a href="javascript:toukei('saishou')">最小値</a> <a href="javascript:toukei('saidai')">最大値</a> <br>
+
+<br>
+
+<!-- ★サブ表示 -->
+<input type="text" id="SUB_SEG" value="0" size="32" readonly> サブ表示欄<br>
+<script Language="JavaScript">
+<!--
+document.forms.CALC_FORM.SUB_SEG.style.backgroundColor = "#cccccc";
+//-->
+</script>
+
+<br>
+
+</form>
+
+
+	</script>
+
+</body>
+</html>
